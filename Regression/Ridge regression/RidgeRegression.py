@@ -56,7 +56,7 @@ class RidgeRegression():
         if feature_is_contstant:
             derivative = 2*(l2_penalty*weights + np.dot(self.train_feature_x.T, errors))
         else:
-            weight0 = np.array([weights[0]])
+            weight0 = np.zeros(1)
             if weights.shape[0] == 2:
                 weight1 = np.array([weights[1]])
             else: weight1 = weights[1:]
