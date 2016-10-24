@@ -1,5 +1,4 @@
-# Machine Learning Algorithm
-######Coursera Machine Learning Specification
+# Machine Learning Algorithm Implementation and Analysis
 
 Implement machine learning algorithm to analyze large and complex datasets:
 
