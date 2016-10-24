@@ -1,0 +1,86 @@
+/**
+ * 
+ */
+package AnnAnalysis;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import func.nn.backprop.BackPropagationNetwork;
+import opt.OptimizationAlgorithm;
+import opt.RandomizedHillClimbing;
+import opt.SimulatedAnnealing;
+import opt.example.NeuralNetworkOptimizationProblem;
+import opt.ga.StandardGeneticAlgorithm;
+import shared.DataSet;
+import shared.ErrorMeasure;
+import shared.Instance;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class Optimization {
+	BackPropagationNetwork clf;
+	ErrorMeasure measure;
+	String oaName;
+	NeuralNetworkOptimizationProblem nnop;
+	OptimizationAlgorithm oa;
+	/**
+	 * @param clf
+	 * @param measure
+	 * @param oaName
+	 */
+	public Optimization(BackPropagationNetwork clf, ErrorMeasure measure, String oaName){
+		this.clf = clf;
+		this.measure = measure;
+		this.oaName = oaName;
+	}
+	
+	/**
+	 * method to train a classifier using optimization algorithms
+	 * @param data
+	 * @param paramsSA
+	 * @param paramsGA
+	 * @param iters
+	 */
+	public void trainModel(DataSet data, List<Double> paramsSA, List<Integer> paramsGA, int iters){
+		nnop = new NeuralNetworkOptimizationProblem(data, this.clf, this.measure);
+		if (this.oaName.equals("RHC")){
+			oa = new RandomizedHillClimbing(nnop);
+		}
+		
+		if (this.oaName.equals("SA")){
+			oa = new SimulatedAnnealing(paramsSA.get(0), 
+					                       paramsSA.get(1), nnop);
+		}
+		
+		if (this.oaName.equals("GA")){
+			oa = new StandardGeneticAlgorithm(paramsGA.get(0),
+					                       paramsGA.get(1), paramsGA.get(2), nnop);
+		}
+		for(int i = 0; i < iters; i++) {
+            oa.train();
+        }   
+		Instance optimalInstance = oa.getOptimal();
+        this.clf.setWeights(optimalInstance.getData());
+	}
+	
+	/**
+	 * method to predict using input data
+	 * @param yTest
+	 * @return
+	 */
+	public List<Double> predict(List<ArrayList<Double>> yTest){
+		List<Double> preds = new ArrayList<Double>();
+        for (int j = 0; j < yTest.size(); j++) {
+        	convertToVector convert = new convertToVector();
+        	this.clf.setInputValues(convert.convertDoubleListToVector(yTest.get(j)));
+            this.clf.run();
+            preds.add(this.clf.getOutputValues().get(0));
+        }
+        return preds;
+		
+	}
+
+}

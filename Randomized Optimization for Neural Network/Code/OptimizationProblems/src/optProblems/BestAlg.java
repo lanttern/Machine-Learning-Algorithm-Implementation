@@ -1,0 +1,70 @@
+/**
+ * 
+ */
+package optProblems;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import opt.EvaluationFunction;
+import opt.OptimizationAlgorithm;
+import shared.FixedIterationTrainer;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class BestAlg {
+	List<OptimizationAlgorithm> algs;
+	List<EvaluationFunction> efs;
+	List<String> names;
+	
+	/**
+	 * constructor
+	 * @param algs
+	 * @param names
+	 * @param efs
+	 */
+	public BestAlg(List<OptimizationAlgorithm> algs,List<String> names, 
+			       List<EvaluationFunction> efs) {
+		// TODO Auto-generated constructor stub
+		this.algs = algs;
+		this.efs = efs;
+		this.names = names;
+	}
+   
+	/**
+	 * get data for each algorithm using in n trials
+	 * @param iters
+	 * @return
+	 */
+	public List<Map> voteAlg(int iters) {
+		List<Map> voteInfo = new ArrayList<>();
+		// TODO Auto-generated method stub
+		String name;
+		Map<String, List<Double>> counter = new HashMap<>();
+		Map<String, List<Double>> runTime = new HashMap<>();
+		
+		for (int j = 0; j < this.algs.size(); j++){
+			name = this.names.get(j);
+			List<Double> scores = new ArrayList<>();
+			List<Double> times = new ArrayList<>();
+			for (int i = 0; i < this.efs.size(); i++){
+				double timeStart = System.nanoTime();
+		        FixedIterationTrainer fit = new FixedIterationTrainer(this.algs.get(j), iters);
+		        fit.train();
+		        scores.add(this.efs.get(i).value(this.algs.get(j).getOptimal()));
+		        times.add((System.nanoTime() - timeStart)/1E9);
+			}
+			counter.put(name, scores);
+			runTime.put(name, times);
+		}
+		
+		voteInfo.add(counter);
+		voteInfo.add(runTime);
+		return voteInfo;
+	}
+
+}
