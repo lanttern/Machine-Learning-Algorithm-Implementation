@@ -10,4 +10,6 @@ Implement machine learning algorithm to analyze large and complex datasets:
 
 [Randomized Optimization for Neural Network](https://github.com/lanttern/Machine-Learning-Algorithm-Implementation/tree/master/Randomized%20Optimization%20for%20Neural%20Network)
 
+[Clustering and Dimensionality Reduction](https://github.com/lanttern/Machine-Learning-Algorithm-Implementation/blob/master/Clustering%20and%20Dimensionality%20Reduction/README.md)
+
 
