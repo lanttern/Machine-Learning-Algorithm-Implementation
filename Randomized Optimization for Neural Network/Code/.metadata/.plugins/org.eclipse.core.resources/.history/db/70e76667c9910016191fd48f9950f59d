@@ -1,0 +1,32 @@
+/**
+ * 
+ */
+package optProblems;
+
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class Main {
+
+    public static void main(String[] args) {
+        // set up different problems
+    	// CountOnesProblem cop = new CountOnesProblem();
+    	// FlipFlopProblem ffp = new FlipFlopProblem();
+    	FourPeaksProblem fpp = new FourPeaksProblem();
+    	KnapsackProblem kp = new KnapsackProblem();
+    	// MaxKColoringProblem mkcp = new MaxKColoringProblem();
+    	NQueensProblem nqp = new NQueensProblem();
+    	
+    	// experiments to optimize different problems
+    	// cop.experiment("CountOnesProblem");
+    	// ffp.experiment("FlipFlopProblem");
+    	//fpp.experiment("FourPeaksProblem");
+    	kp.experiment("KnapsackProblem");
+    	// mkcp.experiment("MaxKColoringProblem");
+    	// nqp.experiment("NQueensProblem");
+    	
+    }
+
+}

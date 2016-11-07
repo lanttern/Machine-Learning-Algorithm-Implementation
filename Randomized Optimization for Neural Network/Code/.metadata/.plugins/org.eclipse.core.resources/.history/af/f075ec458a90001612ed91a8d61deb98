@@ -1,0 +1,354 @@
+package AnnAnalysis;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+/*
+ * import java library and ABAGAIL library
+ */
+import java.util.*;
+import shared.DataSet;
+import shared.ErrorMeasure;
+import shared.Instance;
+import shared.SumOfSquaresError;
+import func.nn.backprop.BackPropagationNetwork;
+import func.nn.backprop.BackPropagationNetworkFactory;
+
+public class AnnWeights {
+	private static final int[] layers = {16, 8, 4, 2, 1};
+	
+    public static void main(String[] args) {
+    	// load data
+    	readData yTestFile = new readData("y_test.csv");
+    	readData XTestFile = new readData("X_test.csv");
+    	readData yValFile = new readData("y_val.csv");
+    	readData XValFile = new readData("X_val.csv");
+    	readData yTrainFile = new readData("y_train.csv");
+    	readData XTrainFile = new readData("X_train.csv");
+  
+    	List<ArrayList<Double>> yTest = yTestFile.read();
+    	List<ArrayList<Double>> XTest = XTestFile.read();
+    	List<ArrayList<Double>> yVal = yValFile.read();
+    	List<ArrayList<Double>> XVal = XValFile.read();
+    	List<ArrayList<Double>> yTrain = yTrainFile.read();
+    	List<ArrayList<Double>> XTrain = XTrainFile.read();
+       	System.out.println("Loaded " + yTrain.size() + " train samples, " 
+    	                   + yVal.size() + " validation samples and " 
+       			           + yTest.size() + " test samples");
+       	
+       	// setup neural networks
+       	DataSet trainData = new DataSet(createInstance(yTrain, XTrain));
+       	BackPropagationNetwork clfs[] = new BackPropagationNetwork[4]; 
+       	BackPropagationNetworkFactory factory = new BackPropagationNetworkFactory();
+       	for(int i = 0; i < clfs.length; i++) {
+            clfs[i] = factory.createClassificationNetwork(layers);
+        }
+       	
+       	ErrorMeasure measure = new SumOfSquaresError();
+       	
+       	List<List<Double>> scores = new ArrayList<>();
+       	List<Integer> dataPoints = new ArrayList<>();
+       	
+       	// set up backprop trainer
+       	String name = "BP";
+       	List<Double> scoresBP = new ArrayList<>();
+       	List<Double> scoresBPT = new ArrayList<>();
+       	BackProp bp = new BackProp(clfs[0]);
+       	
+       	//set up randomized hill climbing optimization
+       	String oaNameRHC = "RHC";
+       	List<Double> scoresRHC = new ArrayList<>();
+       	List<Double> scoresRHCT = new ArrayList<>();
+       	Optimization opRHC = new Optimization(clfs[1], measure, oaNameRHC);
+       	
+       	// set up simulated annealing optimization 
+       	String oaNameSA = "SA";
+       	List<Double> scoresSA = new ArrayList<>();
+       	List<Double> scoresSAT = new ArrayList<>();
+       	List<Double> paramsSA = new ArrayList<Double>();
+       	paramsSA.add(1E8);
+       	paramsSA.add(0.80);
+       	Optimization opSA = new Optimization(clfs[2], measure, oaNameSA);
+       	
+        // set up genetic algorithm optimization 
+       	String oaNameGA = "GA";
+       	List<Double> scoresGA = new ArrayList<>();
+       	List<Double> scoresGAT = new ArrayList<>();
+       	Optimization opGA = new Optimization(clfs[3], measure, oaNameGA);
+       	
+       	for (int i = 0; i < yTrain.size(); i += yTrain.size()/10){
+       		List<Integer> paramsGA = new ArrayList<Integer>();
+           	paramsGA.add(yTrain.size()/10);
+           	paramsGA.add(yTrain.size()/10);
+           	paramsGA.add(yTrain.size()/10);
+       		int endIndex = i + yTrain.size()/10;
+       		System.out.println(endIndex);
+       		if (endIndex >= yTrain.size()){
+       			endIndex = yTrain.size() - 1;
+       		}
+       		dataPoints.add(endIndex);
+       		List<ArrayList<Double>> newyTrain = yTrain.subList(0, endIndex);
+       		List<ArrayList<Double>> newXTrain = XTrain.subList(0, endIndex);
+       		DataSet newTrainData = new DataSet(createInstance(newyTrain, newXTrain));
+           	// train back prop model
+       		bp.trainModel(newTrainData);
+           	scoresBP.add(metrics(name, bp.predict(newXTrain), newyTrain));
+           	scoresBPT.add(metrics(name, bp.predict(XVal), yVal));
+       		
+           	// train randomized hill climbing optimization model
+       		opRHC.trainModel(newTrainData, null, null, 5000);
+           	scoresRHC.add(metrics (oaNameRHC, opRHC.predict(newXTrain), newyTrain));
+           	scoresRHCT.add(metrics (oaNameRHC, opRHC.predict(XVal), yVal));
+           	
+           	// train simulated annealing optimization model
+           	opSA.trainModel(newTrainData, paramsSA, null, 5000);
+           	scoresSA.add(metrics (oaNameSA, opSA.predict(newXTrain), newyTrain));
+           	scoresSAT.add(metrics (oaNameSA, opSA.predict(XVal), yVal));
+           	
+       		// train genetic algorithm optimization model
+       		opGA.trainModel(newTrainData, null, paramsGA, 10);
+           	scoresGA.add(metrics (oaNameGA, opGA.predict(newXTrain), newyTrain));
+           	scoresGAT.add(metrics (oaNameGA, opGA.predict(XVal), yVal));
+       	}
+       	// add accuracy scores for each optimization to scores array list
+       	scores.add(scoresBP);
+       	scores.add(scoresBPT);
+       	scores.add(scoresRHC);
+       	scores.add(scoresRHCT);
+       	scores.add(scoresSA);
+       	scores.add(scoresSAT);
+       	scores.add(scoresGA);
+       	scores.add(scoresGAT);
+       	
+       	// write learning data to csv file
+       	outputLearning("learningData.csv", dataPoints, scores);
+       	
+       // test different params
+       // RHC, test different runs of random hill climbing
+       List<Double> meanScoresRHC = new ArrayList<>();
+       List<Integer> numberOfRuns = new ArrayList<>();
+       double bestScoreRHC = 0.0;
+       int bestRuns = 1;
+       for (int i = 2; i < 21; i += 2){
+    	   numberOfRuns.add(i);
+    	   double sumOfScores = 0.0;
+    	   double meanOfScores;
+    	   for (int j = 0; j < i; j++){
+             	opRHC.trainModel(trainData, null, null, 5000);
+             	sumOfScores += metrics(oaNameRHC, opRHC.predict(XVal), yVal);
+    	   }
+    	   meanOfScores = sumOfScores/(double)(i);
+    	   meanScoresRHC.add(meanOfScores);
+    	   if (bestScoreRHC < meanOfScores){
+    		   bestScoreRHC = meanOfScores;
+    		   bestRuns = i;
+    	   }
+       }
+       
+       outputValidation("ValidationData" + oaNameRHC + ".csv", "numberOfRuns", 
+    		             numberOfRuns, null, meanScoresRHC);
+       
+       // SA test cooling exponent
+       List<Double> ScoresSAVal = new ArrayList<>();
+       List<Double> valueOfCooling = new ArrayList<>();
+       double bestScoreSA = 0.0;
+       double bestCooling = 0.2;
+       for (double i = 0.2; i < 2.1; i += 0.2){
+    	   List<Double> paramsSAVal = new ArrayList<Double>();
+    	   paramsSAVal.add(1E8);
+    	   paramsSAVal.add(i);
+    	   valueOfCooling.add(i);
+           opSA.trainModel(trainData, paramsSAVal, null, 5000);
+           ScoresSAVal.add(metrics(oaNameSA, opSA.predict(XVal), yVal));
+           if (bestScoreSA < metrics(oaNameSA, opSA.predict(XVal), yVal)){
+               bestScoreSA = metrics(oaNameSA, opSA.predict(XVal), yVal);
+               bestCooling = i;
+               }
+       }
+       
+       outputValidation("ValidationData" + oaNameSA + ".csv", "valueOfCooling", null, 
+                       valueOfCooling, ScoresSAVal);
+       
+       
+       // GA test number of populations to mutate
+       List<Double> ScoresGAVal = new ArrayList<>();
+       List<Integer> numberOfPopulationToMutate = new ArrayList<>();
+       double bestScoreGA = 0.0;
+       int bestMutate = 10;
+       for (int i = XTrain.size()/10; i < XTrain.size(); i += XTrain.size()/10){
+    	   List<Integer> paramsGAVal = new ArrayList<>();
+           paramsGAVal.add(yTrain.size()/10);
+           paramsGAVal.add(yTrain.size()/10);
+    	   paramsGAVal.add(i);
+    	   numberOfPopulationToMutate.add(i);
+           opGA.trainModel(trainData, null, paramsGAVal, 10);
+           ScoresGAVal.add(metrics(oaNameGA, opGA.predict(XVal), yVal));
+           if (bestScoreGA < metrics(oaNameGA, opGA.predict(XVal), yVal)){
+               bestScoreGA = metrics(oaNameGA, opGA.predict(XVal), yVal);
+               bestMutate = i;
+               }
+       }
+       
+       outputValidation("ValidationData" + oaNameGA + ".csv", "numberOfPopulationToMutate", 
+                       numberOfPopulationToMutate, null, ScoresGAVal);
+       
+       
+       // apply optimized algorithm parameters to test dataset
+       // apply for RHC
+       long startTimeRHC = System.nanoTime();
+	   for (int j = 0; j < bestRuns; j++){
+        	opRHC.trainModel(trainData, null, null, 5000);
+        	metrics(oaNameRHC + "Test", opRHC.predict(XTest), yTest);
+	   }
+	   System.out.println("Train and predict with RHC: " + 
+	                      (System.nanoTime() - startTimeRHC) / 1E9 + " seconds");
+	   
+	   // apply for SA
+	   long startTimeSA = System.nanoTime();
+	   List<Double> paramsSATest = new ArrayList<Double>();
+	   paramsSATest.add(1E8);
+	   paramsSATest.add(bestCooling);
+       opSA.trainModel(trainData, paramsSATest, null, 5000);
+       metrics(oaNameSA + "Test", opSA.predict(XTest), yTest);
+       System.out.println("Train and predict with SA: " + 
+               (System.nanoTime() - startTimeSA) / 1E9 + " seconds");
+       
+	   // apply for GA
+       long startTimeGA = System.nanoTime();
+	   List<Integer> paramsGATest = new ArrayList<>();
+   	   paramsGATest.add(XTrain.size());
+	   paramsGATest.add(XTrain.size());
+	   paramsGATest.add(bestMutate);
+       opGA.trainModel(trainData, null, paramsGATest, 10);
+       metrics(oaNameGA + "Test", opGA.predict(XTest), yTest); 
+       System.out.println("Train and predict with GA: " + 
+               (System.nanoTime() - startTimeGA) / 1E9 + " seconds");
+	   
+    }
+   
+    /**
+     * 
+     * @param labels
+     * @param features
+     * @return
+     */
+    public static Instance[] createInstance(List<ArrayList<Double>> labels, List<ArrayList<Double>> features){
+    	convertToVector convert = new convertToVector();
+        Instance[] matrix = new Instance[labels.size()];
+        for (int i = 0; i < matrix.length; i++) {
+            double[] featuresArray = convert.convertDoubleListToArray(features.get(i));
+            double[] labelsArray = convert.convertDoubleListToArray(labels.get(i));
+        	matrix[i] = new Instance(featuresArray);
+            matrix[i].setLabel(new Instance(labelsArray));
+        }
+       return matrix;
+    }
+    
+    public static double metrics (String name, List<Double> results, List<ArrayList<Double>> labels) {
+    	double threshold = 0.5;
+	    int tp = 0, tn = 0, fp = 0, fn = 0, pos = 0, neg = 0;	
+    	for (int i = 0; i < results.size(); i++) {
+	    	boolean p = results.get(i) < threshold ? false : true;
+	    	boolean a = labels.get(i).get(0) < 0.5 ? false : true;
+	    	if (p && a) {
+	    		tp++;
+	    	} 
+	    	else if (!p && !a) { 
+	    		tn++;
+	    	} 
+	    	else if (!p && a) {
+	    		fn++;
+	    	} 
+	    	else {
+	    		fp++;
+	    		}
+	    	if (a) {
+	    		pos++;
+	    	} 
+	    	else {
+	    		neg++;
+	    	}
+	    }
+    	float tpr = (float) tp / pos;
+    	float fpr = (float) fp / neg;
+    	float accuracy = (float) (tp + tn) / (tp + tn + fp + fn);
+    	float precision = (float) tp / (tp + fp);
+    	float recall = (float) tp / (tp + fn);
+    	float F = (float) (2.0 * (precision * recall) / (precision + recall));
+    	System.out.println("--- " + name + " ---");
+    	System.out.println("Threshold: " + threshold);
+    	System.out.println("  True Positive Rate: " + tpr + " False Positive Rate: " + fpr);
+    	System.out.println("  Accuracy: " + accuracy + " Recall: " + recall + " Precision: " + precision + " F1: " + F);
+	
+        return accuracy;
+    }
+    
+    /**
+     * this method writes number of training samples and accuracy scores to files
+     * @param fileName
+     * @param dataPoints
+     * @param scores
+     */
+    public static void outputLearning(String fileName, List<Integer> dataPoints, List<List<Double>> scores){
+    	//output
+        File file = new File(fileName);
+        FileWriter writer;
+    	   try {
+    		   writer = new FileWriter(file);
+    	       PrintWriter pwtr = new PrintWriter(new BufferedWriter(writer));
+    	       pwtr.println("Training samples, AccuracyBP_train, AccuracyBP_validation, "
+    	       		       + "AccuracyRHC_train,AccuracyRHC_validation, AccuracySA_train, "
+    	       		       + "AccuracySA_validation, AccuracyGA_train, AccuracyGA_validation");
+    	       for(int i = 0; i < dataPoints.size(); i++) {
+    	           pwtr.println(dataPoints.get(i) + "," + scores.get(0).get(i) + "," 
+    	                       + scores.get(1).get(i) + "," + scores.get(2).get(i)
+    	                       + "," + scores.get(3).get(i)+ "," + scores.get(4).get(i) + "," 
+    	                       + scores.get(5).get(i) + "," + scores.get(6).get(i)
+    	                       + "," + scores.get(7).get(i));
+    	       }
+    	       pwtr.close();
+    	       System.out.println("Learning data written to file SUCCEED!");
+    	    } catch (IOException e) {
+    		// TODO Auto-generated catch block
+    		   e.printStackTrace();
+    		   System.out.println("Learning data written to file FAIL!");
+    	  }
+    }
+    
+    /**
+     * 
+     * @param fileName
+     * @param paramName
+     * @param params1
+     * @param params2
+     * @param scores
+     */
+    public static void outputValidation(String fileName, String paramName, List<Integer> params1, 
+    		                           List<Double> params2, List<Double> scores){
+    	//output
+        File file = new File(fileName);
+        FileWriter writer;
+    	   try {
+    		   writer = new FileWriter(file);
+    	       PrintWriter pwtr = new PrintWriter(new BufferedWriter(writer));
+    	       pwtr.println(paramName + ", " + "Accuracy");
+    	       for(int i = 0; i < params1.size(); i++) {
+    	    	   if (paramName.equals("valueOfCooling")){
+    	    		   pwtr.println(params2.get(i) + "," + scores.get(i));
+    	    	   }
+    	    	   else{
+    	    		   pwtr.println(params1.get(i) + "," + scores.get(i));
+    	    	   }
+    	           
+    	       }
+    	       pwtr.close();
+    	       System.out.println("Validating data written to file SUCCEED!");
+    	    } catch (IOException e) {
+    		// TODO Auto-generated catch block
+    		   e.printStackTrace();
+    		   System.out.println("Validating data written to file FAIL!");
+    	  }
+    }
+
+}

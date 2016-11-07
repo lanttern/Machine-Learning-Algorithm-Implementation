@@ -1,0 +1,19 @@
+package AnnAnalysis;
+
+import func.nn.backprop.BackPropagationNetwork;
+import shared.ConvergenceTrainer;
+import shared.DataSet;
+import shared.ErrorMeasure;
+
+public class BackProp {
+	ConvergenceTrainer trainer;
+	
+	public BackProp(){
+		
+	}
+	
+	public void trainData(DataSet data, BackPropagationNetwork clf, ErrorMeasure measure, ){
+		
+	}
+
+}

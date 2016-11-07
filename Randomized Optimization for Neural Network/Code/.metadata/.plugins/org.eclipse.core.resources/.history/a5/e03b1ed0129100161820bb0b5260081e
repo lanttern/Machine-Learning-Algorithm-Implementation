@@ -1,0 +1,151 @@
+/**
+ * 
+ */
+package TravelingSalesmanProblem;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+import dist.DiscreteDependencyTree;
+import dist.DiscretePermutationDistribution;
+import dist.DiscreteUniformDistribution;
+import dist.Distribution;
+
+import opt.SwapNeighbor;
+import opt.GenericHillClimbingProblem;
+import opt.HillClimbingProblem;
+import opt.NeighborFunction;
+import opt.OptimizationAlgorithm;
+import opt.RandomizedHillClimbing;
+import opt.SimulatedAnnealing;
+import opt.example.*;
+import opt.ga.CrossoverFunction;
+import opt.ga.SwapMutation;
+import opt.ga.GenericGeneticAlgorithmProblem;
+import opt.ga.GeneticAlgorithmProblem;
+import opt.ga.MutationFunction;
+import opt.ga.StandardGeneticAlgorithm;
+import opt.prob.GenericProbabilisticOptimizationProblem;
+import opt.prob.MIMIC;
+import opt.prob.ProbabilisticOptimizationProblem;
+import shared.FixedIterationTrainer;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class Main {
+    /** The n value */
+    private static final int N = 50;
+    /**
+     * The test main
+     * @param args ignored
+     */
+    public static void main(String[] args) {
+        Random random = new Random();
+        // create the random points
+        double[][] points = new double[N][2];
+        for (int i = 0; i < points.length; i++) {
+            points[i][0] = random.nextDouble();
+            points[i][1] = random.nextDouble();   
+        }
+        //
+       	List<List<Double>> scores = new ArrayList<>();
+       	List<Integer> dataPoints = new ArrayList<>();
+        // for rhc, sa, and ga we use a permutation based encoding
+        TravelingSalesmanEvaluationFunction ef = new TravelingSalesmanRouteEvaluationFunction(points);
+        
+        // add problems
+        
+        Distribution odd = new DiscretePermutationDistribution(N);
+        NeighborFunction nf = new SwapNeighbor();
+        MutationFunction mf = new SwapMutation();
+        CrossoverFunction cf = new TravelingSalesmanCrossOver(ef);
+        HillClimbingProblem hcp = new GenericHillClimbingProblem(ef, odd, nf);
+        GeneticAlgorithmProblem gap = new GenericGeneticAlgorithmProblem(ef, odd, mf, cf);
+        // rhc
+        RandomizedHillClimbing rhc = new RandomizedHillClimbing(hcp);      
+        //sa 
+        SimulatedAnnealing sa = new SimulatedAnnealing(1E12, .95, hcp);
+        // ga
+        StandardGeneticAlgorithm ga = new StandardGeneticAlgorithm(200, 150, 20, gap);
+        // for mimic we use a sort encoding
+        ef = new TravelingSalesmanSortEvaluationFunction(points);
+        int[] ranges = new int[N];
+        Arrays.fill(ranges, N);
+        odd = new  DiscreteUniformDistribution(ranges);
+        Distribution df = new DiscreteDependencyTree(.1, ranges); 
+        ProbabilisticOptimizationProblem pop = new GenericProbabilisticOptimizationProblem(ef, odd, df);
+        MIMIC mimic = new MIMIC(200, 100, pop);
+        
+        // add algorithms
+        List<OptimizationAlgorithm> algs = new ArrayList<>();
+        algs.add(rhc);
+        algs.add(sa);
+        algs.add(ga);
+        algs.add(mimic);
+        
+        // check fitness to find iterations to converge
+        int maxIters = 5001;
+        List<List<Double>> fitnessValues = new ArrayList<>();
+        for (int i = 0; i < algs.size(); i++){
+            CheckConverge cc = new CheckConverge(mimic, ef, maxIters);
+            List<Double> fitness = cc.fitnessValue();
+            fitnessValues.add(fitness);
+        }
+
+
+        // optimize params
+        List<Integer> params1 = new ArrayList<>();
+        List<Double> params2 = new ArrayList<>();
+        String name = "SA";
+        OptParams op = new OptParams(hcp, ef, name);
+        List<Double> fitnessParams = op.trainFunction(params1, params2);
+        
+        // vote for the best algorithm
+        int trials = 50;
+        List<String> names = new ArrayList<>();
+        names.add("RHC");
+        names.add("SA");
+        names.add("GA");
+        names.add("MIMC");
+        int bestIters = 0;
+        BestAlg bestAlg = new BestAlg(algs, names, ef, trials);
+        List<Object> bestVote= bestAlg.voteAlg(bestIters);
+        
+    }
+    
+    public static void outputFitnessData(String fileName, List<Integer> iters, List<List<Double>> values){
+    	//output
+        File file = new File(fileName);
+        FileWriter writer;
+    	   try {
+    		   writer = new FileWriter(file);
+    	       PrintWriter pwtr = new PrintWriter(new BufferedWriter(writer));
+    	       pwtr.println("Training samples, AccuracyBP_train, AccuracyBP_validation, "
+    	       		       + "AccuracyRHC_train,AccuracyRHC_validation, AccuracySA_train, "
+    	       		       + "AccuracySA_validation, AccuracyGA_train, AccuracyGA_validation");
+    	       for(int i = 0; i < iters.size(); i++) {
+    	           pwtr.println(iters.get(i) + "," + values.get(0).get(i) + "," 
+    	                       + values.get(1).get(i) + "," + values.get(2).get(i)
+    	                       + "," + scores.get(3).get(i)+ "," + scores.get(4).get(i) + "," 
+    	                       + scores.get(5).get(i) + "," + scores.get(6).get(i)
+    	                       + "," + scores.get(7).get(i));
+    	       }
+    	       pwtr.close();
+    	       System.out.println("Learning data written to file SUCCEED!");
+    	    } catch (IOException e) {
+    		// TODO Auto-generated catch block
+    		   e.printStackTrace();
+    		   System.out.println("Learning data written to file FAIL!");
+    	  }
+    }
+
+}

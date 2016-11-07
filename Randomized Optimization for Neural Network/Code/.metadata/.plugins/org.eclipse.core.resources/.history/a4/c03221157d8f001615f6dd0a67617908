@@ -1,0 +1,43 @@
+package AnnAnalysis;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import func.nn.backprop.BackPropagationNetwork;
+import func.nn.backprop.BatchBackPropagationTrainer;
+import func.nn.backprop.RPROPUpdateRule;
+import func.nn.backprop.StochasticBackPropagationTrainer;
+import shared.ConvergenceTrainer;
+import shared.DataSet;
+import shared.SumOfSquaresError;
+
+public class BackProp {
+	ConvergenceTrainer trainer;
+	List<Double> preds = new ArrayList<Double>();
+	BackPropagationNetwork clf;
+	
+	public BackProp(BackPropagationNetwork clf){
+		this.clf = clf;
+	}
+	// train a back prop neural network classifier
+	public void trainData(DataSet data){
+	      this.trainer = new ConvergenceTrainer(new StochasticBackPropagationTrainer(data, 
+	    		             this.clf, new SumOfSquaresError(), new RPROPUpdateRule()));
+          this.trainer.train();
+		
+	}
+	
+	// predict testing data
+	public List<Double> predict(List<ArrayList<Double>> yTest){
+		
+        for (int j = 0; j < yTest.size(); j++) {
+        	convertToVector convert = new convertToVector();
+        	this.clf.setInputValues(convert.convertDoubleListToVector(yTest.get(j)));
+            this.clf.run();
+            preds.add(this.clf.getOutputValues().get(0));
+        }
+        return preds;
+		
+	}
+
+}

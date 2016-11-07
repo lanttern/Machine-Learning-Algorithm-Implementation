@@ -1,0 +1,50 @@
+/**
+ * 
+ */
+package optProblems;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import opt.EvaluationFunction;
+import opt.HillClimbingProblem;
+import opt.OptimizationAlgorithm;
+import opt.OptimizationProblem;
+import opt.SimulatedAnnealing;
+import opt.example.TravelingSalesmanEvaluationFunction;
+import shared.FixedIterationTrainer;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class OptParams {
+	OptimizationProblem op;
+	EvaluationFunction ef;
+	String name;
+	public OptParams(OptimizationProblem op, EvaluationFunction ef, String name) {
+		// TODO Auto-generated constructor stub
+		this.op = op;
+		this.ef = ef;
+		this.name = name;
+	}
+	public List<Double> trainFunction(List<Integer> params1, List<Double> params2) {
+		// TODO Auto-generated method stub
+		/*
+		List<Double> fitnessScore = new ArrayList<>();
+		if (params1 != null){
+			for (int i = 0; i < params1.size(); i++){
+				if (this.name.equals(anObject)){
+					new SimulatedAnnealing(1E12, .95, hcp);
+				}
+	            FixedIterationTrainer fit = new FixedIterationTrainer(this.alg, i);
+	            fit.train();
+	            fitnessScore.add(this.ef.value(alg.getOptimal()));
+				
+			}
+		}
+		*/
+		return null;
+	}
+
+}

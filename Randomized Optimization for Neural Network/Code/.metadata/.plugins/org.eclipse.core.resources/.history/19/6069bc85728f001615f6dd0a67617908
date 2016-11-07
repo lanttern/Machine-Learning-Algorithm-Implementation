@@ -1,0 +1,25 @@
+package AnnAnalysis;
+
+import util.linalg.Vector;
+
+public class convertToVector extends Vector {
+
+	@Override
+	public int size() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double get(int i) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void set(int i, double d) {
+		// TODO Auto-generated method stub
+
+	}
+
+}

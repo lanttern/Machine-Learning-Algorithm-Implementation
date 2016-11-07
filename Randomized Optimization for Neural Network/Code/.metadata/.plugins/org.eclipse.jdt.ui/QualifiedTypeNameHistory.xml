@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="shared.DataSet"/>
+<fullyQualifiedTypeName name="func.nn.backprop.BackPropagationNetwork"/>
+<fullyQualifiedTypeName name="java.io.BufferedReader"/>
+<fullyQualifiedTypeName name="java.io.FileReader"/>
+<fullyQualifiedTypeName name="java.io.FileNotFoundException"/>
+<fullyQualifiedTypeName name="java.io.IOException"/>
+<fullyQualifiedTypeName name="func.nn.backprop.StochasticBackPropagationTrainer"/>
+<fullyQualifiedTypeName name="shared.ErrorMeasure"/>
+<fullyQualifiedTypeName name="opt.example.NeuralNetworkOptimizationProblem"/>
+<fullyQualifiedTypeName name="opt.RandomizedHillClimbing"/>
+<fullyQualifiedTypeName name="opt.SimulatedAnnealing"/>
+<fullyQualifiedTypeName name="opt.ga.StandardGeneticAlgorithm"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="shared.Instance"/>
+<fullyQualifiedTypeName name="java.io.FileWriter"/>
+<fullyQualifiedTypeName name="shared.writer.CSVWriter"/>
+<fullyQualifiedTypeName name="java.io.FileOutputStream"/>
+<fullyQualifiedTypeName name="java.io.DataOutputStream"/>
+<fullyQualifiedTypeName name="java.util.stream.Collectors"/>
+<fullyQualifiedTypeName name="java.io.File"/>
+<fullyQualifiedTypeName name="java.io.PrintWriter"/>
+<fullyQualifiedTypeName name="java.io.BufferedWriter"/>
+<fullyQualifiedTypeName name="java.lang.System"/>
+<fullyQualifiedTypeName name="opt.OptimizationAlgorithm"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="java.util.Map"/>
+<fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="opt.EvaluationFunction"/>
+<fullyQualifiedTypeName name="opt.HillClimbingProblem"/>
+<fullyQualifiedTypeName name="opt.OptimizationProblem"/>
+</qualifiedTypeNameHistroy>

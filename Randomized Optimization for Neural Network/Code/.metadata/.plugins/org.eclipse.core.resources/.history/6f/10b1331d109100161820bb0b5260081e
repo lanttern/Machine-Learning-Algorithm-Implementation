@@ -1,0 +1,33 @@
+/**
+ * 
+ */
+package TravelingSalesmanProblem;
+
+import java.util.List;
+
+import opt.OptimizationAlgorithm;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class BestAlg {
+	List<OptimizationAlgorithm> algs;
+	int trials;
+
+	public BestAlg(List<OptimizationAlgorithm> algs, int trials) {
+		// TODO Auto-generated constructor stub
+		this.algs = algs;
+		this.trials = trials;
+	}
+
+	public List<Object> voteAlg() {
+		List<Object> voteInfo = new ArrayList<>();
+		// TODO Auto-generated method stub
+		for (int i = 0; i < this.trials; i++){
+			
+		}
+		return null;
+	}
+
+}

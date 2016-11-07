@@ -1,0 +1,26 @@
+package AnnAnalysis;
+
+import java.util.Iterator;
+import java.util.List;
+
+import util.linalg.DenseVector;
+import util.linalg.Vector;
+
+public class convertToVector {
+	
+    // convert an ArrayList<Double> to a double[]    
+    public static double[] convertDoubleListToArray(List<Double> list) {
+        double[] ret = new double[list.size()];
+        Iterator<Double> iterator = list.iterator();
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = iterator.next().intValue();
+        }
+        return ret;
+    }
+    
+    // convert an ArrayList<Double> to a util.linalg.Vector
+    public Vector convertDoubleListToVector(List<Double> list) {
+		return new DenseVector(convertDoubleListToArray(list));
+    }
+
+}

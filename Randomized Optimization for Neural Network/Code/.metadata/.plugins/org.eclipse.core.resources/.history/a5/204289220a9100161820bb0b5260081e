@@ -1,0 +1,18 @@
+/**
+ * 
+ */
+package TravelingSalesmanProblem;
+
+import opt.HillClimbingProblem;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class OptParams {
+
+	public OptParams(Object hcp, String name) {
+		// TODO Auto-generated constructor stub
+	}
+
+}

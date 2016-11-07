@@ -1,0 +1,18 @@
+/**
+ * 
+ */
+package TravelingSalesmanProblem;
+
+import opt.RandomizedHillClimbing;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class CheckConverge {
+
+	public CheckConverge(Object rhc, int iters) {
+		// TODO Auto-generated constructor stub
+	}
+
+}

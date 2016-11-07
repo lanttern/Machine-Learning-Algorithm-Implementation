@@ -1,0 +1,26 @@
+/**
+ * 
+ */
+package TravelingSalesmanProblem;
+
+import opt.EvaluationFunction;
+import opt.HillClimbingProblem;
+import opt.OptimizationAlgorithm;
+import opt.example.TravelingSalesmanEvaluationFunction;
+
+/**
+ * @author zhihuixie
+ *
+ */
+public class OptParams {
+	OptimizationAlgorithm alg;
+	EvaluationFunction ef;
+	String name;
+	public OptParams(OptimizationAlgorithm alg, EvaluationFunction ef, String name) {
+		// TODO Auto-generated constructor stub
+		this.alg = alg;
+		this.ef = ef;
+		this.name = name;
+	}
+
+}

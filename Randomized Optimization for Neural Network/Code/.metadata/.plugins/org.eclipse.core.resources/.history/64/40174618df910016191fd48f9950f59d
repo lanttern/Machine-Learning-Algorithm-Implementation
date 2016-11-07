@@ -1,0 +1,175 @@
+package optProblems;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import dist.DiscreteDependencyTree;
+import dist.DiscreteUniformDistribution;
+import dist.Distribution;
+
+import opt.DiscreteChangeOneNeighbor;
+import opt.EvaluationFunction;
+import opt.GenericHillClimbingProblem;
+import opt.HillClimbingProblem;
+import opt.NeighborFunction;
+import opt.OptimizationAlgorithm;
+import opt.RandomizedHillClimbing;
+import opt.SimulatedAnnealing;
+import opt.example.*;
+import opt.ga.CrossoverFunction;
+import opt.ga.DiscreteChangeOneMutation;
+import opt.ga.SingleCrossOver;
+import opt.ga.GenericGeneticAlgorithmProblem;
+import opt.ga.GeneticAlgorithmProblem;
+import opt.ga.MutationFunction;
+import opt.ga.StandardGeneticAlgorithm;
+import opt.prob.GenericProbabilisticOptimizationProblem;
+import opt.prob.MIMIC;
+import opt.prob.ProbabilisticOptimizationProblem;
+import shared.FixedIterationTrainer;
+
+/**
+ * Copied from ContinuousPeaksTest
+ * @version 1.0
+ */
+public class FourPeaksProblem {
+    /** The n value */
+    private static final int N = 200;
+    /** The t value */
+    private static final int T = N / 5;
+    
+    public static void experiment(String name) {
+        String probName = "FourPeaksProblem";
+    	List<OptimizationAlgorithm> algs = new ArrayList<>();
+        int[] ranges = new int[N];
+        Arrays.fill(ranges, 2);
+        EvaluationFunction ef = new FourPeaksEvaluationFunction(T);
+        Distribution odd = new DiscreteUniformDistribution(ranges);
+        NeighborFunction nf = new DiscreteChangeOneNeighbor(ranges);
+        MutationFunction mf = new DiscreteChangeOneMutation(ranges);
+        CrossoverFunction cf = new SingleCrossOver();
+        Distribution df = new DiscreteDependencyTree(.1, ranges); 
+        HillClimbingProblem hcp = new GenericHillClimbingProblem(ef, odd, nf);
+        GeneticAlgorithmProblem gap = new GenericGeneticAlgorithmProblem(ef, odd, mf, cf);
+        ProbabilisticOptimizationProblem pop = new GenericProbabilisticOptimizationProblem(ef, odd, df);
+        
+        RandomizedHillClimbing rhc = new RandomizedHillClimbing(hcp);      
+        SimulatedAnnealing sa = new SimulatedAnnealing(1E11, .95, hcp);        
+        StandardGeneticAlgorithm ga = new StandardGeneticAlgorithm(200, 100, 10, gap);        
+        MIMIC mimic = new MIMIC(200, 20, pop);
+        
+        algs.add(rhc);
+        algs.add(sa);
+        algs.add(ga);
+        algs.add(mimic);
+        Experiment newExp = new Experiment();
+        /*
+        newExp.experiments(algs, ef, name);
+        
+        // test temperature for SA
+        String paramName = "Temperature";
+        String algName = "SA";
+        List<Double> params2 = new ArrayList<>();
+        List<OptimizationAlgorithm> algsTest = new ArrayList<>();
+        for (double i = 1E10; i < 1E12; i+=1E10){
+        	params2.add(i);
+        	sa = new SimulatedAnnealing(i, .95, hcp); 
+        	algsTest.add(sa);
+        }
+        newExp.optParams(algsTest, ef, paramName, null, params2, algName, probName);
+        
+        // test cooling rate for SA
+        paramName = "CoolingRate";
+        params2 = new ArrayList<>();
+        algsTest = new ArrayList<>();
+        for (double i = 0.01; i < 1; i+=0.01){
+        	params2.add(i);
+        	sa = new SimulatedAnnealing(1E11, i, hcp); 
+        	algsTest.add(sa);
+        }
+        newExp.optParams(algsTest, ef, paramName, null, params2, algName, probName);
+        
+        // test populationSize for GA
+        paramName = "populationSize";
+        algName = "GA";
+        List<Integer> params1 = new ArrayList<>();
+        algsTest = new ArrayList<>();
+        for (int i = 200; i < 1201; i+=10){
+        	params1.add(i);
+        	ga = new StandardGeneticAlgorithm(i, 100, 10, gap); 
+        	algsTest.add(ga);
+        }
+        newExp.optParams(algsTest, ef, paramName, params1, null, algName, probName);
+        
+        // test toMate for GA
+        paramName = "toMate";
+        params1 = new ArrayList<>();
+        algsTest = new ArrayList<>();
+        for (int i = 2; i < 200; i+=2){
+        	params1.add(i);
+        	ga = new StandardGeneticAlgorithm(200, i, 10, gap);
+        	algsTest.add(ga);
+        }
+        newExp.optParams(algsTest, ef, paramName, params1, null, algName, probName);
+        
+        // test toMutate for GA
+        paramName = "toMutate";
+        params1 = new ArrayList<>();
+        algsTest = new ArrayList<>();
+        for (int i = 10; i < 1001; i+=10){
+        	params1.add(i);
+        	ga = new StandardGeneticAlgorithm(200, 100, i, gap);
+        	algsTest.add(ga);
+        }
+        newExp.optParams(algsTest, ef, paramName, params1, null, algName, probName);
+        */
+        // test samples for MIMIC
+         String paramName = "Temperature";
+         String algName = "SA";
+         List<Integer> params1 = new ArrayList<>();
+         List<OptimizationAlgorithm> algsTest = new ArrayList<>();
+        
+        //paramName = "samples";
+        algName = "MIMIC";
+        //params1 = new ArrayList<>();
+        //algsTest = new ArrayList<>();
+        //for (int i = 200; i < 1201; i += 100){
+        	//params1.add(i);
+        	//mimic = new MIMIC(i, 20, pop);
+        	//algsTest.add(mimic);
+        //}
+        //newExp.optParams(algsTest, ef, paramName, params1, null, algName, probName);
+        
+        // test tokeep for MIMIC
+        paramName = "tokeeep";
+        params1 = new ArrayList<>();
+        algsTest = new ArrayList<>();
+        for (int i = 1; i < 101; i+=1){
+        	params1.add(i);
+        	mimic = new MIMIC(200, i, pop);
+        	algsTest.add(mimic);
+        }
+        newExp.optParams(algsTest, ef, paramName, params1, null, algName, probName);    
+        /*
+        // test different algorithms with various NQueensProblems
+        // set up algorithms
+        algs = new ArrayList<>();
+        sa = new SimulatedAnnealing(7.80E11, .59, hcp);
+        ga = new StandardGeneticAlgorithm(1050, 90, 100, gap);
+        mimic = new MIMIC(400, 220, pop);
+        algs.add(rhc);
+        algs.add(sa);
+        algs.add(ga);
+        algs.add(mimic);
+        // set up different efs
+        List<EvaluationFunction> efs = new ArrayList<>();
+        for (int i = 1; i < 50; i++){
+        	ef = new FourPeaksEvaluationFunction(T*i);
+        	efs.add(ef);
+        }
+        newExp.voteBest(algs, efs, 2000, probName);
+        */
+       
+    }
+}
